@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-staff
+    ports:
+      - "6564:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: staff_management
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  backend:
+    build: ./Backend
+    container_name: backend-staff
+    ports:
+      - "3007:3007"
+    depends_on:
+      - postgres
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: admin123
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: staff_management
+      PORT: 3007
+    restart: unless-stopped
+
+  hr-staff:
+    build: ./HR-staff
+    container_name: HR-staff
+    ports:
+      - "8064:80"
+    depends_on:
+      - backend
+    environment:
+      REACT_APP_API_URL: http://backend:3007
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+
